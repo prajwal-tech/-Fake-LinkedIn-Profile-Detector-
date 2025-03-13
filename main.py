@@ -14,7 +14,6 @@ import networkx as nx
 import torch
 from torchvision import transforms
 from PIL import Image
-import streamlit as st
 from flask import Flask, request, jsonify
 import google.generativeai as genai
 
@@ -44,10 +43,6 @@ def detect_fake_profile(image_path):
         age = analysis[0]['age']
         gender = analysis[0]['dominant_gender']
         race = analysis[0]['dominant_race']
-        plt.imshow(img_rgb)
-        plt.axis("off")
-        plt.title(f"Age: {age}, Gender: {gender}, Race: {race}")
-        plt.show()
         return {"Age": age, "Gender": gender, "Race": race}
     except Exception as e:
         print(f"Error: {e}")
@@ -89,26 +84,7 @@ def track_linkedin_activity(profile_url):
         print(f"Error: {e}")
         return None
 
-# Streamlit Web App Interface
-st.title("🔍 Fake LinkedIn Profile Detector")
-image_path = st.file_uploader("Upload a LinkedIn Profile Picture", type=["jpg", "png", "jpeg"])
-profile_text = st.text_area("Paste the LinkedIn Profile Bio")
-profile_url = st.text_input("Enter LinkedIn Profile URL")
-
-if st.button("Analyze Profile"):
-    if image_path:
-        image_results = detect_fake_profile(image_path)
-        deepfake_results = detect_deepfake(image_path)
-        st.write("Profile Image Analysis:", image_results)
-        st.write("Deepfake Detection:", deepfake_results)
-    if profile_text:
-        text_results = detect_ai_generated_text(profile_text)
-        st.write("Profile Bio Analysis:", text_results)
-    if profile_url:
-        activity_results = track_linkedin_activity(profile_url)
-        st.write("LinkedIn Activity Analysis:", activity_results)
-
-# API Endpoint for Browser Extension
+# API Endpoint for External Use
 @app.route('/analyze', methods=['POST'])
 def analyze_profile():
     data = request.json
@@ -126,5 +102,4 @@ def analyze_profile():
     return jsonify(response)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    app.run(host='0.0.0.0', port=5000, debug=True)
